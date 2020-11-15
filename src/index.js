@@ -15,7 +15,6 @@ app.use(async (ctx, next) => {
   const ms = new Date() - start;
   console.log(`${ctx.method} ${ctx.url} ${ctx.response.status} - ${ms}ms`);
 });
-
 app.use(async (ctx, next) => {
   try {
     await next();
@@ -25,24 +24,32 @@ app.use(async (ctx, next) => {
   }
 });
 
-class Item {
-  constructor({ id, text, date, version }) {
+
+class Student {
+  constructor({ id, name, graduated, grade, enrollment, date, version }) {
     this.id = id;
-    this.text = text;
+    this.name=name;
+    this.graduated=graduated;
+    this.grade=grade;
+    this.enrollment=enrollment;
     this.date = date;
     this.version = version;
   }
 }
 
-const items = [];
+const students = [];
 for (let i = 0; i < 3; i++) {
-  items.push(new Item({ id: `${i}`, text: `item ${i}`, date: new Date(Date.now() + i), version: 1 }));
+  students.push(new Student({ id: `${i}`, name: `student ${i}`, graduated: new Boolean('true'),
+    grade: Number(20), enrollment: new Date(Date.now() + i), date: new Date(Date.now() + i), version: 1 }));
 }
-let lastUpdated = items[items.length - 1].date;
-let lastId = items[items.length - 1].id;
+
+let lastUpdated = students[students.length - 1].date;
+let lastId = students[students.length - 1].id;
 const pageSize = 10;
 
 const broadcast = data =>
+
+
   wss.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify(data));
@@ -51,17 +58,18 @@ const broadcast = data =>
 
 const router = new Router();
 
-router.get('/item', ctx => {
+router.get('/student', ctx => {
+
   const ifModifiedSince = ctx.request.get('If-Modif ied-Since');
   if (ifModifiedSince && new Date(ifModifiedSince).getTime() >= lastUpdated.getTime() - lastUpdated.getMilliseconds()) {
     ctx.response.status = 304; // NOT MODIFIED
     return;
   }
-  const text = ctx.request.query.text;
+  const name = ctx.request.query.name;
   const page = parseInt(ctx.request.query.page) || 1;
   ctx.response.set('Last-Modified', lastUpdated.toUTCString());
-  const sortedItems = items
-    .filter(item => text ? item.text.indexOf(text) !== -1 : true)
+  const sortedStudents = students
+    .filter(student => name ? student.name.indexOf(name) !== -1 : true)
     .sort((n1, n2) => -(n1.date.getTime() - n2.date.getTime()));
   const offset = (page - 1) * pageSize;
   // ctx.response.body = {
@@ -69,98 +77,103 @@ router.get('/item', ctx => {
   //   items: sortedItems.slice(offset, offset + pageSize),
   //   more: offset + pageSize < sortedItems.length
   // };
-  ctx.response.body = items;
+  ctx.response.body = students;
   ctx.response.status = 200;
 });
 
-router.get('/item/:id', async (ctx) => {
-  const itemId = ctx.request.params.id;
-  const item = items.find(item => itemId === item.id);
-  if (item) {
-    ctx.response.body = item;
+router.get('/student/:id', async (ctx) => {
+  console.log(`get one student`);
+  const studentId = ctx.request.params.id;
+  const student = students.find(student => studentId === student.id);
+  console.log(`${student.name} ${student.grade} ${student.enrollment} ${student.date} ${student.graduated}`);
+  if (student) {
+    ctx.response.body = student;
     ctx.response.status = 200; // ok
   } else {
-    ctx.response.body = { issue: [{ warning: `item with id ${itemId} not found` }] };
+    ctx.response.body = { issue: [{ warning: `students with id ${studentId} not found` }] };
     ctx.response.status = 404; // NOT FOUND (if you know the resource was deleted, then return 410 GONE)
   }
 });
 
-const createItem = async (ctx) => {
-  const item = ctx.request.body;
-  if (!item.text) { // validation
-    ctx.response.body = { issue: [{ error: 'Text is missing' }] };
+const createStudent = async (ctx) => {
+  const student = ctx.request.body;
+  if (!student.name) { // validation
+    ctx.response.body = { issue: [{ error: 'Name is missing' }] };
     ctx.response.status = 400; //  BAD REQUEST
     return;
   }
-  item.id = `${parseInt(lastId) + 1}`;
-  lastId = item.id;
-  item.date = Date.now();
-  item.version = 1;
-  items.push(item);
-  ctx.response.body = item;
+  student.id = `${parseInt(lastId) + 1}`;
+  lastId = student.id;
+  student.date = Date.now();
+  student.version = 1;
+  students.push(student);
+  ctx.response.body = student;
   ctx.response.status = 201; // CREATED
-  broadcast({ event: 'created', payload: { item } });
+  broadcast({ event: 'created', payload: { student } });
 };
 
-router.post('/item', async (ctx) => {
-  await createItem(ctx);
+router.post('/student', async (ctx) => {
+  await createStudent(ctx);
 });
 
-router.put('/item/:id', async (ctx) => {
+router.put('/student/:id', async (ctx) => {
   const id = ctx.params.id;
-  const item = ctx.request.body;
-  const itemId = item.id;
-  if (itemId && id !== item.id) {
+  const student = ctx.request.body;
+  console.log(`${student.id} ${student.name} ${student.grade} ${student.enrollment} ${student.date} ${student.graduated}`);
+  const studentId = student.id;
+  if (studentId && id !== student.id) {
     ctx.response.body = { issue: [{ error: `Param id and body id should be the same` }] };
     ctx.response.status = 400; // BAD REQUEST
     return;
   }
-  if (!itemId) {
-    await createItem(ctx);
+  if (!studentId) {
+    await createStudent(ctx);
     return;
   }
-  const index = items.findIndex(item => item.id === id);
+  const index = students.findIndex(student => student.id === id);
   if (index === -1) {
-    ctx.response.body = { issue: [{ error: `item with id ${id} not found` }] };
+    ctx.response.body = { issue: [{ error: `student with id ${id} not found` }] };
     ctx.response.status = 400; // BAD REQUEST
     return;
   }
-  const itemVersion = parseInt(ctx.request.get('ETag')) || item.version;
-  if (itemVersion < items[index].version) {
+  const studentVersion = parseInt(ctx.request.get('ETag')) || student.version;
+  if (studentVersion < students[index].version) {
     ctx.response.body = { issue: [{ error: `Version conflict` }] };
     ctx.response.status = 409; // CONFLICT
     return;
   }
-  item.version++;
-  items[index] = item;
+  student.version++;
+  students[index] = student;
   lastUpdated = new Date();
-  ctx.response.body = item;
+  ctx.response.body = student;
   ctx.response.status = 200; // OK
-  broadcast({ event: 'updated', payload: { item } });
+  broadcast({ event: 'updated', payload: { student } });
 });
 
-router.del('/item/:id', ctx => {
+router.del('/student/:id', ctx => {
   const id = ctx.params.id;
-  const index = items.findIndex(item => id === item.id);
+  const index = students.findIndex(student => id === student.id);
   if (index !== -1) {
-    const item = items[index];
-    items.splice(index, 1);
+    const student = students[index];
+    students.splice(index, 1);
     lastUpdated = new Date();
-    broadcast({ event: 'deleted', payload: { item } });
+    broadcast({ event: 'deleted', payload: { student } });
   }
   ctx.response.status = 204; // no content
 });
-
+/*
 setInterval(() => {
   lastUpdated = new Date();
   lastId = `${parseInt(lastId) + 1}`;
-  const item = new Item({ id: lastId, text: `item ${lastId}`, date: lastUpdated, version: 1 });
-  items.push(item);
-  console.log(`
-   ${item.text}`);
-  broadcast({ event: 'created', payload: { item } });
-}, 15000);
 
+  const student = new Student({ id: lastId, name: `student ${lastId}`, graduated: new Boolean('true'),
+    grade: Number(20), enrollment: lastUpdated, date: lastUpdated, version: 1 });
+  students.push(student);
+
+  console.log(`caca ${student.name}`);
+  broadcast({ event: 'created', payload: { student } });
+}, 15000);
+*/
 app.use(router.routes());
 app.use(router.allowedMethods());
 

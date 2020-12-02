@@ -9,15 +9,16 @@ import { router as authRouter } from './auth';
 import jwt from 'koa-jwt';
 import cors from '@koa/cors';
 
-
 const app = new Koa();
 const server = http.createServer(app.callback());
 const wss = new WebSocket.Server({ server });
 initWss(wss);
 
+/*
 const Router = require('koa-router');
 const cors = require('koa-cors');
 const bodyparser = require('koa-bodyparser');
+*/
 
 app.use(cors());
 app.use(timingLogger);
@@ -35,7 +36,7 @@ app
     .use(publicApiRouter.allowedMethods());
 
 app.use(jwt(jwtConfig));
-
+/*
 
 // protected
 const protectedApiRouter = new Router({ prefix });
@@ -44,11 +45,18 @@ protectedApiRouter
 app
     .use(protectedApiRouter.routes())
     .use(protectedApiRouter.allowedMethods());
+ */
 
 server.listen(3000);
 console.log('started on port 3000');
 
+require('dns').lookup(require('os').hostname(), function (err, add, fam) {
+  console.log('addr: '+add);
+})
 
+
+
+/*
 
 class Student {
   constructor({ id, name, graduated, grade, enrollment, date, version }) {
@@ -203,6 +211,7 @@ app.use(router.allowedMethods());
 server.listen(3000);
 
 
-require('dns').lookup(require('os').hostname(), function (err, add, fam) {
-  console.log('addr: '+add);
-})
+*/
+
+
+

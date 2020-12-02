@@ -48,8 +48,6 @@ let lastId = students[students.length - 1].id;
 const pageSize = 10;
 
 const broadcast = data =>
-
-
   wss.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify(data));
@@ -161,7 +159,7 @@ router.del('/student/:id', ctx => {
   }
   ctx.response.status = 204; // no content
 });
-/*
+
 setInterval(() => {
   lastUpdated = new Date();
   lastId = `${parseInt(lastId) + 1}`;
@@ -173,8 +171,13 @@ setInterval(() => {
   console.log(`caca ${student.name}`);
   broadcast({ event: 'created', payload: { student } });
 }, 15000);
-*/
+
 app.use(router.routes());
 app.use(router.allowedMethods());
 
 server.listen(3000);
+
+
+require('dns').lookup(require('os').hostname(), function (err, add, fam) {
+  console.log('addr: '+add);
+})

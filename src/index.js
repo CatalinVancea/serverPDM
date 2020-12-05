@@ -6,6 +6,7 @@ import bodyParser from "koa-bodyparser";
 import { timingLogger, exceptionHandler, jwtConfig, initWss, verifyClient } from './utils';
 import { router as noteRouter } from './note';
 import { router as authRouter } from './auth';
+import { router as studentRouter } from './student';
 import jwt from 'koa-jwt';
 import cors from '@koa/cors';
 
@@ -36,16 +37,16 @@ app
     .use(publicApiRouter.allowedMethods());
 
 app.use(jwt(jwtConfig));
-/*
+
 
 // protected
 const protectedApiRouter = new Router({ prefix });
 protectedApiRouter
-    .use('/student', noteRouter.routes());
+    .use('/student', studentRouter.routes());
 app
     .use(protectedApiRouter.routes())
     .use(protectedApiRouter.allowedMethods());
- */
+
 
 server.listen(3000);
 console.log('started on port 3000');
@@ -81,11 +82,11 @@ let lastId = students[students.length - 1].id;
 const pageSize = 10;
 
 const broadcast = data =>
-  wss.clients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify(data));
-    }
-  });
+    wss.clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(data));
+      }
+    });
 
 const router = new Router();
 
@@ -100,8 +101,8 @@ router.get('/student', ctx => {
   const page = parseInt(ctx.request.query.page) || 1;
   ctx.response.set('Last-Modified', lastUpdated.toUTCString());
   const sortedStudents = students
-    .filter(student => name ? student.name.indexOf(name) !== -1 : true)
-    .sort((n1, n2) => -(n1.date.getTime() - n2.date.getTime()));
+      .filter(student => name ? student.name.indexOf(name) !== -1 : true)
+      .sort((n1, n2) => -(n1.date.getTime() - n2.date.getTime()));
   const offset = (page - 1) * pageSize;
   // ctx.response.body = {
   //   page,
@@ -210,8 +211,4 @@ app.use(router.allowedMethods());
 
 server.listen(3000);
 
-
 */
-
-
-

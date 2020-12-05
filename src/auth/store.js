@@ -13,6 +13,11 @@ export class UserStore {
     //
     return this.store.insert(user);
   };
+
+  async update(props, user) {
+    return this.store.update(props, user);
+  }
+
 }
 
 export default new UserStore({ filename: './db/users.json', autoload: true });

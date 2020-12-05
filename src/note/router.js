@@ -33,7 +33,7 @@ const createNote = async (ctx, note, response) => {
     note.userId = userId;
     response.body = await noteStore.insert(note);
     response.status = 201; // created
-    broadcast(userId, { type: 'created', payload: note });
+    broadcast(userId, { event: 'created', payload: note });
   } catch (err) {
     response.body = { message: err.message };
     response.status = 400; // bad request
@@ -61,7 +61,7 @@ router.put('/:id', async (ctx) => {
     if (updatedCount === 1) {
       response.body = note;
       response.status = 200; // ok
-      broadcast(userId, { type: 'updated', payload: note });
+      broadcast(userId, { event: 'updated', payload: note });
     } else {
       response.body = { message: 'Resource no longer exists' };
       response.status = 405; // method not allowed

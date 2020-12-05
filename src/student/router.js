@@ -93,8 +93,10 @@ const createStudent = async (ctx, student, response) => {
 
     response.body = await studentStore.insert(student);
     response.status = 201; // created
-    await lastUpdatedDateSet(userId, Date.now())
-    broadcast(userId, { type: 'created', payload: student });
+    console.log("create 1"+ new Date(Date.now()));
+    await lastUpdatedDateSet(userId, Date.now());
+    console.log("create 2");
+    broadcast(userId, { event: 'created', payload: { student }});
   } catch (err) {
     response.body = { message: err.message };
     response.status = 400; // bad request
@@ -149,7 +151,7 @@ router.put('/:id', async (ctx) => {
       response.body = student;
       response.status = 200; // ok
       await lastUpdatedDateSet(userId, Date.now())
-      broadcast(userId, { type: 'updated', payload: studentFound });
+      broadcast(userId, { event: 'updated', payload: { studentFound } });
     } else {
       response.body = { message: 'Resource no longer exists' };
       response.status = 405; // method not allowed

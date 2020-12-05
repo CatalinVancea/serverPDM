@@ -45,10 +45,14 @@ export const lastUpdatedDateGet = async (userId) => {
 
 export const lastUpdatedDateSet = async (userId, date) => {
 
+  //console.log("lastupdateddateset ");
   const userFound = await userStore.findOne({_id: userId});
+  //console.log("lastupdateddateset "+userFound.lastUpdated);
   userFound.lastUpdated = new Date( date );
+  //console.log("lastupdateddateset "+userFound.lastUpdated);
   await userStore.update({_id: userId}, userFound);
   return await userStore.findOne({_id: userId});
+
 };
 
 
@@ -70,7 +74,7 @@ router.put('/last-updated', async (ctx) => {
   const response = ctx.response;
   const user = await userStore.findOne({ username: request.username });
 
-  console.log('last-updated '+request.date);
+  //console.log('last-updated '+request.date);
 
   const updatedUser = await lastUpdatedDateSet(user._id, request.date);
   const date = updatedUser.lastUpdated

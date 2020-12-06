@@ -75,7 +75,7 @@ const createStudent = async (ctx, student, response) => {
 
     student.date = Date.now();
     student.version = 1;
-
+    console.log("create 0");
     if(lastId == -1 || lastIdUser != userId){
       let students = [];
       students = await studentStore.find({ userId });
@@ -87,16 +87,16 @@ const createStudent = async (ctx, student, response) => {
         }
       })
     }
-
+    console.log("create 1/2");
     student.id = `${parseInt(lastId) + 1}`;
     lastId = student.id;
-
+    console.log("create 1/3");
     response.body = await studentStore.insert(student);
     response.status = 201; // created
     console.log("create 1"+ new Date(Date.now()));
     await lastUpdatedDateSet(userId, Date.now());
     console.log("create 2");
-    broadcast(userId, { event: 'created', payload: { student }});
+    broadcast(userId, { event: 'created', payload:  student });
   } catch (err) {
     response.body = { message: err.message };
     response.status = 400; // bad request
@@ -136,6 +136,7 @@ router.put('/:id', async (ctx) => {
     studentFound.graduated = student.graduated;
     studentFound.grade = student.grade;
     studentFound.enrollment = student.enrollment;
+    console.log("update: "+student.version);
 
     if (student.version != studentFound.version) {
       ctx.response.body = { issue: [{ error: `Version conflict` }] };
@@ -151,7 +152,7 @@ router.put('/:id', async (ctx) => {
       response.body = student;
       response.status = 200; // ok
       await lastUpdatedDateSet(userId, Date.now())
-      broadcast(userId, { event: 'updated', payload: { studentFound } });
+      broadcast(userId, { event: 'updated', payload:  studentFound });
     } else {
       response.body = { message: 'Resource no longer exists' };
       response.status = 405; // method not allowed
@@ -175,7 +176,7 @@ router.del('/:id', async (ctx) => {
     console.log('no content ');
     console.log('student: '+student.id);
     await lastUpdatedDateSet(userId, Date.now())
-    broadcast(userId,{ event: 'deleted', payload: { student } });
+    broadcast(userId,{ event: 'deleted', payload: student });
   }
 
 });

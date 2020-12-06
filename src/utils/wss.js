@@ -8,14 +8,19 @@ export const initWss = value => {
   wss = value;
   wss.on('connection', ws => {
     ws.on('message', message => {
+      console.log(message);
       const { type, payload: { token } } = JSON.parse(message);
+      console.log("ws entry");
       if (type !== 'authorization') {
+        console.log("ws close");
         ws.close();
         return;
       }
       try {
         ws.user = jwt.verify(token, jwtConfig.secret);
+        console.log("ws jwt verifyed");
       } catch (err) {
+        console.log("ws jwt invalid");
         ws.close();
       }
     })

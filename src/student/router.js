@@ -10,11 +10,21 @@ let lastId = -1;
 let lastIdUser = -1;
 const pageSize = 10;
 
-
-
-router.get('/', async (ctx) => {
+router.get('/paging', async (ctx) => {
+  console.log("get ");
   const response = ctx.response;
   const userId = ctx.state.user._id;
+  console.log("get "+userId);
+  const students = await studentStore.find({ userId: userId });
+  response.body = students;
+  response.status = 200; // ok
+});
+
+router.get('/', async (ctx) => {
+  console.log("get ");
+  const response = ctx.response;
+  const userId = ctx.state.user._id;
+  console.log("get "+userId);
   response.body = await studentStore.find({ userId: userId });
   response.status = 200; // ok
 });
@@ -25,19 +35,18 @@ router.get('/modified', async (ctx) => {
   const request = ctx.request;
   const userId = ctx.state.user._id;
 
-
   const ifModifiedSince = request.get('If-Modified-Since');
   const dateee = new Date(ifModifiedSince);
-  console.log('get all modified1 ' + ifModifiedSince);
-  console.log('get all modified2 ' + Date.now());
-  console.log('get all modified3 ' + dateee);
-  console.log('get all modified4 ' + dateee.getTime());
+  //console.log('get all modified1 ' + ifModifiedSince);
+  //console.log('get all modified2 ' + Date.now());
+  //console.log('get all modified3 ' + dateee);
+  //console.log('get all modified4 ' + dateee.getTime());
 
   lastUpdated = await lastUpdatedDateGet(userId);
 
-  console.log('get all modified5 ' + lastUpdated);
-  console.log('get all modified6 ' + lastUpdated.getTime);
-  console.log('get all modified7 ' + lastUpdated.getMilliseconds);
+  //console.log('get all modified5 ' + lastUpdated);
+  //console.log('get all modified6 ' + lastUpdated.getTime);
+  //console.log('get all modified7 ' + lastUpdated.getMilliseconds);
 
   if (ifModifiedSince && new Date(ifModifiedSince).getTime() >= lastUpdated.getTime() - lastUpdated.getMilliseconds()) {
     response.status = 304; // NOT MODIFIED
@@ -106,12 +115,15 @@ const createStudent = async (ctx, student, response) => {
 router.post('/', async ctx => await createStudent(ctx, ctx.request.body, ctx.response));
 
 router.put('/:id', async (ctx) => {
+  //console.log("update1")
   const student = ctx.request.body;
   const userId = ctx.state.user._id;
   const id = ctx.params.id;
   let studentId = ctx.params.id;
   //const studentPk = student._id;
   const response = ctx.response;
+  //console.log("update2")
+
 /*
   if (studentId && studentId !== id) {
     response.body = { message: 'Param id and body id should be the same' };
@@ -123,15 +135,20 @@ router.put('/:id', async (ctx) => {
   let studentFound = null;
 
   try {
+    //console.log("update3")
     studentFound = await studentStore.findOne({id: id, userId: userId});
+    //console.log("update4")
   }catch (err){
+    //console.log("update5")
     studentFound = null;
   }
 
   if (studentFound == null) {
+    //console.log("update6")
     await createStudent(ctx, student, response);
   } else {
 
+    //console.log("update7")
     studentFound.name = student.name;
     studentFound.graduated = student.graduated;
     studentFound.grade = student.grade;
@@ -139,6 +156,7 @@ router.put('/:id', async (ctx) => {
     console.log("update: "+student.version);
 
     if (student.version != studentFound.version) {
+      //console.log("update8")
       ctx.response.body = { issue: [{ error: `Version conflict` }] };
       ctx.response.status = 409; // CONFLICT
       return;

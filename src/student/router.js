@@ -153,6 +153,7 @@ router.put('/:id', async (ctx) => {
     studentFound.graduated = student.graduated;
     studentFound.grade = student.grade;
     studentFound.enrollment = student.enrollment;
+    studentFound.studentPhotos = student.studentPhotos;
     console.log("update: "+student.version);
 
     if (student.version != studentFound.version) {

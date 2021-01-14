@@ -178,6 +178,67 @@ router.put('/:id', async (ctx) => {
   }
 });
 
+router.put('/force/:id', async (ctx) => {
+  //console.log("update1")
+  const student = ctx.request.body;
+  const userId = ctx.state.user._id;
+  const id = ctx.params.id;
+  let studentId = ctx.params.id;
+  //const studentPk = student._id;
+  const response = ctx.response;
+  //console.log("update2")
+
+  /*
+    if (studentId && studentId !== id) {
+      response.body = { message: 'Param id and body id should be the same' };
+      response.status = 400; // bad request
+      return;
+    }
+  */
+
+  let studentFound = null;
+
+  try {
+    //console.log("update3")
+    studentFound = await studentStore.findOne({id: id, userId: userId});
+    //console.log("update4")
+  }catch (err){
+    //console.log("update5")
+    studentFound = null;
+  }
+
+  if (studentFound == null) {
+    //console.log("update6")
+    await createStudent(ctx, student, response);
+  } else {
+
+    //console.log("update7")
+    studentFound.name = student.name;
+    studentFound.graduated = student.graduated;
+    studentFound.grade = student.grade;
+    studentFound.enrollment = student.enrollment;
+    console.log("update old version: "+studentFound.version);
+
+    studentFound.version = student.version
+
+    console.log("update new version: "+studentFound.version);
+
+    studentFound.version++;
+
+    const updatedCount = await studentStore.update({ id: studentId, userId: userId }, studentFound);
+
+    if (updatedCount === 1) {
+      response.body = student;
+      response.status = 200; // ok
+      await lastUpdatedDateSet(userId, Date.now())
+      broadcast(userId, { event: 'updated', payload:  studentFound });
+    } else {
+      response.body = { message: 'Resource no longer exists' };
+      response.status = 405; // method not allowed
+    }
+  }
+});
+
 router.del('/:id', async (ctx) => {
   const userId = ctx.state.user._id;
   const id = ctx.params.id.toString();

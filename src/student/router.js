@@ -154,6 +154,7 @@ router.put('/:id', async (ctx) => {
     studentFound.grade = student.grade;
     studentFound.enrollment = student.enrollment;
     studentFound.studentPhotos = student.studentPhotos;
+    studentFound.position = student.position;
     console.log("update: "+student.version);
 
     if (student.version != studentFound.version) {
@@ -218,6 +219,8 @@ router.put('/force/:id', async (ctx) => {
     studentFound.graduated = student.graduated;
     studentFound.grade = student.grade;
     studentFound.enrollment = student.enrollment;
+    studentFound.studentPhotos = student.studentPhotos;
+    studentFound.position = student.position;
     console.log("update old version: "+studentFound.version);
 
     studentFound.version = student.version
